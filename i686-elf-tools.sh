@@ -20,10 +20,11 @@ ALL_PRODUCTS=true
 if [ $# -eq 0 ]; then
     BUILD_BINUTILS=true
     BUILD_GCC=true
-    BUILD_GDB=true
-    ZIP=true
+    BUILD_GDB=false
+    LINUX_ONLY=true
+    ZIP=false
     
-    args="binutils gcc gdb zip"
+    args="binutils gcc linux"
 else
     args=$@
 fi
@@ -98,15 +99,25 @@ function main {
 }
 
 function installPackages {
-    
+    local DISTRIB=$(awk -F= '/^NAME/{print $2}' /etc/os-release)
     echoColor "Installing packages"
-
-    sudo -E apt-get -qq install git \
+    if [[ $DISTRIB == *"Arch"* ]]; then
+        sudo -E pacman -S git \
+        autoconf automake gettext bash bison bzip2 flex gettext\
+        gcc gperf intltool libffi gdk-pixbuf2 \
+        libtool lib32-libltdl openssl-1.0 perl-xml-parser make \
+        openssl p7zip patch perl pkg-config python ruby scons \
+        sed unzip wget xz libtool texinfo lib32-gcc-libs lzip -y
+    elif [[ $DISTRIB == *"Ubuntu"* ]]; then
+        sudo -E apt-get -qq install git \
         autoconf automake autopoint bash bison bzip2 flex gettext\
         g++ gperf intltool libffi-dev libgdk-pixbuf2.0-dev \
         libtool libltdl-dev libssl-dev libxml-parser-perl make \
         openssl p7zip-full patch perl pkg-config python ruby scons \
         sed unzip wget xz-utils libtool-bin texinfo g++-multilib lzip -y
+        else
+        echoError "Sorry your distro is currently not supported"
+        fi
 }
 
 # MXE
